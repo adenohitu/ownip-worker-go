@@ -17,7 +17,7 @@ func main() {
 		if err == nil {
 			fmt.Printf("Handle=%s\n", domain.Handle)
 		}
-		fmt.Println(domain)
+
 		var Organization string = "----"
 
 		for _, v := range domain.Remarks {
@@ -30,6 +30,17 @@ func main() {
 			"Name":         domain.Name,
 			"Organization": Organization,
 		})
+	})
+
+	r.GET("/rdap/all", func(ctx *gin.Context) {
+		client := &rdap.Client{}
+		domain, err := client.QueryIP(ctx.ClientIP())
+
+		if err == nil {
+			fmt.Printf("Handle=%s\n", domain.Handle)
+		}
+
+		ctx.JSON(http.StatusOK, domain)
 	})
 	r.Run()
 }
