@@ -8,7 +8,7 @@ import (
 	"github.com/openrdap/rdap"
 )
 
-func main() {
+func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.GET("/", func(ctx *gin.Context) {
 		client := &rdap.Client{}
@@ -16,20 +16,31 @@ func main() {
 
 		if err == nil {
 			fmt.Printf("Handle=%s\n", domain.Handle)
-		}
 
-		var Organization string = "----"
+			var Organization string = ""
 
-		for _, v := range domain.Remarks {
-			if v.Title == "description" {
-				Organization = v.Description[0]
+			for _, v := range domain.Remarks {
+				if v.Title == "description" {
+					Organization = v.Description[0]
+				}
 			}
+
+			ctx.JSON(http.StatusOK, gin.H{
+				"status":       "ok",
+				"ClientIP":     ctx.ClientIP(),
+				"Name":         domain.Name,
+				"Organization": Organization,
+			})
+
+		} else {
+			ctx.JSON(http.StatusOK, gin.H{
+				"status":       "rdapError",
+				"ClientIP":     ctx.ClientIP(),
+				"Name":         "",
+				"Organization": "",
+			})
 		}
-		ctx.JSON(http.StatusOK, gin.H{
-			"ClientIP":     ctx.ClientIP(),
-			"Name":         domain.Name,
-			"Organization": Organization,
-		})
+
 	})
 
 	r.GET("/rdap/all", func(ctx *gin.Context) {
@@ -42,5 +53,9 @@ func main() {
 
 		ctx.JSON(http.StatusOK, domain)
 	})
+	return r
+}
+func main() {
+	r := setupRouter()
 	r.Run()
 }
